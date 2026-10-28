@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>MacDynamicIsland</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.antigravity.MacDynamicIsland</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>MacDynamicIsland</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSCameraUsageDescription</key>
+    <string>MacDynamicIsland uses the camera to provide a quick live mirror preview widget.</string>
+    <key>NSCalendarsUsageDescription</key>
+    <string>MacDynamicIsland displays your upcoming calendar events and meeting countdowns.</string>
+    <key>NSRemindersUsageDescription</key>
+    <string>MacDynamicIsland displays your upcoming tasks and reminders.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>MacDynamicIsland controls Apple Music and Spotify to display current track and playback controls.</string>
+</dict>
+</plist>
