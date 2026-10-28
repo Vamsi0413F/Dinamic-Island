@@ -6,11 +6,12 @@ import ServiceManagement
 public final class SettingsStore: ObservableObject {
     public static let shared = SettingsStore()
     
-    // Notch Geometry
-    @AppStorage("notchWidth") public var notchWidth: Double = 210.0
-    @AppStorage("notchHeight") public var notchHeight: Double = 34.0
+    // Notch Geometry Calibration (Offsets relative to hardware detection)
+    @AppStorage("notchWidthOffset") public var notchWidthOffset: Double = 0.0
+    @AppStorage("notchHeightOffset") public var notchHeightOffset: Double = 0.0
     @AppStorage("notchCornerRadius") public var notchCornerRadius: Double = 18.0
     @AppStorage("notchYOffset") public var notchYOffset: Double = 0.0
+    @AppStorage("preferBuiltInNotchDisplay") public var preferBuiltInNotchDisplay: Bool = true
     
     // Behavior
     @AppStorage("hoverToExpand") public var hoverToExpand: Bool = true
@@ -37,10 +38,11 @@ public final class SettingsStore: ObservableObject {
     public init() {}
     
     public func resetToDefaults() {
-        notchWidth = 210.0
-        notchHeight = 34.0
+        notchWidthOffset = 0.0
+        notchHeightOffset = 0.0
         notchCornerRadius = 18.0
         notchYOffset = 0.0
+        preferBuiltInNotchDisplay = true
         hoverToExpand = true
         hoverExpandDelay = 0.25
         autoCollapseSeconds = 4.0
@@ -63,8 +65,7 @@ public final class SettingsStore: ObservableObject {
                 try SMAppService.mainApp.unregister()
             }
         } catch {
-            // Sandboxed/local development fallback - SMAppService might throw when unbundled
-            print("[SettingsStore] LaunchAtLogin update note: \(error.localizedDescription)")
+            print("[SettingsStore] LaunchAtLogin note: \(error.localizedDescription)")
         }
     }
     

@@ -66,7 +66,7 @@ public struct ExpandedIslandView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("MacBook Air M2")
+                        Text(DeviceHardwareInfo.shared.displayModelName)
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(.white)
                         Text("CPU \(Int(metricsService.metrics.cpuUsagePercent))% • RAM \(Int(metricsService.metrics.ramPercent))% • Battery \(Int(metricsService.metrics.batteryLevel * 100))%")

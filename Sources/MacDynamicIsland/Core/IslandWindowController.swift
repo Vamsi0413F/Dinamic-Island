@@ -61,12 +61,19 @@ public final class IslandWindowController: ObservableObject {
                 self?.updateFrame(animated: false)
             }
             .store(in: &cancellables)
+        
+        NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.activeSpaceDidChangeNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateFrame(animated: false)
+            }
+            .store(in: &cancellables)
     }
     
     public func updateFrame(animated: Bool) {
-        guard let panel = panel, let screen = NSScreen.main else { return }
+        guard let panel = panel else { return }
         
-        let notchInfo = ScreenNotchDetector.shared.detectNotch(on: screen)
+        let notchInfo = ScreenNotchDetector.shared.detectNotch()
         let mode = IslandStateManager.shared.mode
         let targetFrame = calculateFrame(for: mode, notchInfo: notchInfo)
         
@@ -90,18 +97,25 @@ public final class IslandWindowController: ObservableObject {
         
         switch mode {
         case .compact:
-            width = max(notchInfo.notchWidth, SettingsStore.shared.notchWidth)
-            height = max(notchInfo.notchHeight, SettingsStore.shared.notchHeight)
+            width = max(100, notchInfo.notchWidth + SettingsStore.shared.notchWidthOffset)
+            height = max(28, notchInfo.notchHeight + SettingsStore.shared.notchHeightOffset)
         case .expanded:
-            width = 440
+            width = min(460, max(360, screen.width - 40))
             height = 180
         case .detailed:
-            width = 580
-            height = 430
+            width = min(600, max(480, screen.width - 40))
+            height = min(460, max(380, screen.height - 80))
         }
         
         let x = screen.midX - (width / 2.0)
-        let y = screen.maxY - height + yOffset
+        
+        // If display has a physical notch, hug the top edge. Otherwise float with a 10pt margin.
+        let y: CGFloat
+        if notchInfo.hasNotch {
+            y = screen.maxY - height + yOffset
+        } else {
+            y = screen.maxY - height - 10.0 + yOffset
+        }
         
         return NSRect(x: x, y: y, width: width, height: height)
     }

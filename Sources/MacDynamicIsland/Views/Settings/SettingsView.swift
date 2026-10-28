@@ -35,12 +35,41 @@ public struct SettingsView: View {
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(spacing: 14) {
                     // Geometry Section
-                    settingsSection("Notch Calibration (MacBook Air M2)") {
+                    let notchInfo = ScreenNotchDetector.shared.detectNotch()
+                    settingsSection("Notch & Display Calibration (\(DeviceHardwareInfo.shared.displayModelName))") {
                         VStack(spacing: 8) {
-                            sliderRow(title: "Notch Width", value: $settingsStore.notchWidth, range: 160...320, unit: "pt")
-                            sliderRow(title: "Notch Height", value: $settingsStore.notchHeight, range: 24...50, unit: "pt")
-                            sliderRow(title: "Corner Radius", value: $settingsStore.notchCornerRadius, range: 10...30, unit: "pt")
-                            sliderRow(title: "Top Offset", value: $settingsStore.notchYOffset, range: -10...20, unit: "pt")
+                            HStack {
+                                Text("Display")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.white.opacity(0.8))
+                                Spacer()
+                                Text("\(notchInfo.screenName) (\(Int(notchInfo.screenFrame.width))×\(Int(notchInfo.screenFrame.height)) @ \(Int(notchInfo.scaleFactor))x)")
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+                            
+                            HStack {
+                                Text("Detected Hardware Notch")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.white.opacity(0.8))
+                                Spacer()
+                                Text(notchInfo.hasNotch
+                                     ? String(format: "%.1f pt × %.1f pt", notchInfo.notchWidth, notchInfo.notchHeight)
+                                     : "None (Floating Pill)")
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundColor(notchInfo.hasNotch ? .green : .cyan)
+                            }
+                            
+                            Divider().background(Color.white.opacity(0.08))
+                            
+                            sliderRow(title: "Width Fine-Tuning", value: $settingsStore.notchWidthOffset, range: -30...30, unit: "pt")
+                            sliderRow(title: "Height Fine-Tuning", value: $settingsStore.notchHeightOffset, range: -10...20, unit: "pt")
+                            sliderRow(title: "Corner Radius", value: $settingsStore.notchCornerRadius, range: 12...28, unit: "pt")
+                            sliderRow(title: "Vertical Offset", value: $settingsStore.notchYOffset, range: -10...20, unit: "pt")
+                            
+                            Toggle("Prefer Built-in Notch Screen", isOn: $settingsStore.preferBuiltInNotchDisplay)
+                                .toggleStyle(.switch)
+                                .foregroundColor(.white)
                         }
                     }
                     

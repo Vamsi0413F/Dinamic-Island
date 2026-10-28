@@ -5,8 +5,12 @@ import AppKit
 public final class MediaService: ObservableObject {
     public static let shared = MediaService()
     
-    @Published public private(set) var currentTrack = MediaTrack()
-    @Published public private(set) var visualizerLevels: [CGFloat] = [0.2, 0.4, 0.6, 0.8, 0.5, 0.3, 0.7, 0.4]
+    @Published public private(set) var currentTrack = MediaTrack() {
+        didSet {
+            updateVisualizerTimerState()
+        }
+    }
+    @Published public private(set) var visualizerLevels: [CGFloat] = [0.15, 0.25, 0.15, 0.3, 0.2, 0.15, 0.25, 0.15]
     
     private var pollTimer: Timer?
     private var visualizerTimer: Timer?
@@ -14,7 +18,7 @@ public final class MediaService: ObservableObject {
     public init() {
         setupDistributedNotifications()
         refreshNowPlaying()
-        startTimers()
+        startPollTimer()
     }
     
     private func setupDistributedNotifications() {
@@ -39,23 +43,28 @@ public final class MediaService: ObservableObject {
         }
     }
     
-    private func startTimers() {
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
+    private func startPollTimer() {
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 3.5, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.refreshNowPlaying()
             }
         }
-        
-        visualizerTimer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self = self, self.currentTrack.isPlaying else {
-                    self?.visualizerLevels = [0.15, 0.25, 0.15, 0.3, 0.2, 0.15, 0.25, 0.15]
-                    return
-                }
-                self.visualizerLevels = (0..<8).map { _ in
-                    CGFloat.random(in: 0.2...0.95)
+    }
+    
+    private func updateVisualizerTimerState() {
+        if currentTrack.isPlaying && visualizerTimer == nil {
+            visualizerTimer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self = self, self.currentTrack.isPlaying else { return }
+                    self.visualizerLevels = (0..<8).map { _ in
+                        CGFloat.random(in: 0.2...0.95)
+                    }
                 }
             }
+        } else if !currentTrack.isPlaying && visualizerTimer != nil {
+            visualizerTimer?.invalidate()
+            visualizerTimer = nil
+            visualizerLevels = [0.15, 0.25, 0.15, 0.3, 0.2, 0.15, 0.25, 0.15]
         }
     }
     

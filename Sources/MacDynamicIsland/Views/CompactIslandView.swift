@@ -9,22 +9,31 @@ public struct CompactIslandView: View {
     
     public init() {}
     
+    private var notchInfo: ScreenNotchInfo {
+        ScreenNotchDetector.shared.detectNotch()
+    }
+    
     public var body: some View {
         HStack(spacing: 8) {
-            // Leading side
+            // Leading wing
             leadingContent
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Middle Notch cutout area spacer
-            Spacer()
-                .frame(width: max(0, settingsStore.notchWidth - 120))
+            // Middle cutout spacer (only expanded when physical hardware notch is present)
+            if notchInfo.hasNotch {
+                Spacer()
+                    .frame(width: max(0, (notchInfo.notchWidth + settingsStore.notchWidthOffset) - 80))
+            } else {
+                Spacer()
+                    .frame(minWidth: 8, maxWidth: 20)
+            }
             
-            // Trailing side
+            // Trailing wing
             trailingContent
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(.horizontal, 14)
-        .frame(height: settingsStore.notchHeight)
+        .frame(height: max(28, notchInfo.notchHeight + settingsStore.notchHeightOffset))
         .contentShape(Rectangle())
         .onHover { isHovering in
             stateManager.handleHover(isHovering: isHovering)

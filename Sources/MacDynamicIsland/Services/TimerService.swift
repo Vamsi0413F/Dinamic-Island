@@ -31,17 +31,23 @@ public final class TimerService: ObservableObject {
     // Pomodoro
     @Published public var pomodoroPhase: PomodoroPhase = .work
     @Published public var pomodoroRemainingSeconds: Int = 25 * 60
-    @Published public var pomodoroIsRunning: Bool = false
+    @Published public var pomodoroIsRunning: Bool = false {
+        didSet { updateTickerState() }
+    }
     @Published public var pomodoroCompletedCycles: Int = 0
     
     // Countdown
     @Published public var countdownRemainingSeconds: Int = 10 * 60
     @Published public var countdownTotalSeconds: Int = 10 * 60
-    @Published public var countdownIsRunning: Bool = false
+    @Published public var countdownIsRunning: Bool = false {
+        didSet { updateTickerState() }
+    }
     
     // Stopwatch
     @Published public var stopwatchElapsedSeconds: Double = 0.0
-    @Published public var stopwatchIsRunning: Bool = false
+    @Published public var stopwatchIsRunning: Bool = false {
+        didSet { updateTickerState() }
+    }
     @Published public var stopwatchLaps: [Double] = []
     
     // Keep-Awake (Caffeinate)
@@ -55,14 +61,21 @@ public final class TimerService: ObservableObject {
     private var ticker: Timer?
     
     public init() {
-        startTicker()
+        // Ticker starts lazily on demand
     }
     
-    private func startTicker() {
-        ticker = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.tick()
+    private func updateTickerState() {
+        let needsTicker = pomodoroIsRunning || countdownIsRunning || stopwatchIsRunning
+        if needsTicker && ticker == nil {
+            lastTickTime = Date()
+            ticker = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.tick()
+                }
             }
+        } else if !needsTicker && ticker != nil {
+            ticker?.invalidate()
+            ticker = nil
         }
     }
     

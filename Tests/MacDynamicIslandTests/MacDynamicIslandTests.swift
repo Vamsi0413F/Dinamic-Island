@@ -20,7 +20,17 @@ struct MacDynamicIslandTests {
         #expect(!metrics.formattedDisk.isEmpty)
     }
     
-    @Test("Notch Geometry Detection Fallback")
+    @Test("Device Hardware Detection")
+    func testDeviceHardwareDetection() {
+        let hardware = DeviceHardwareInfo.shared
+        #expect(!hardware.chipName.isEmpty)
+        #expect(!hardware.modelIdentifier.isEmpty)
+        #expect(!hardware.displayModelName.isEmpty)
+        #expect(hardware.physicalCores > 0)
+        #expect(hardware.totalMemoryBytes > 0)
+    }
+    
+    @Test("Screen Notch Detector & Scaling")
     @MainActor
     func testScreenNotchDetector() {
         let detector = ScreenNotchDetector.shared
@@ -29,9 +39,11 @@ struct MacDynamicIslandTests {
         #expect(info.notchWidth > 0)
         #expect(info.notchHeight > 0)
         #expect(info.screenFrame.width > 0)
+        #expect(info.scaleFactor >= 1.0)
+        #expect(!info.screenName.isEmpty)
     }
     
-    @Test("Timer Service Pomodoro Transitions")
+    @Test("Timer Service Pomodoro Transitions & Idle Efficiency")
     @MainActor
     func testPomodoroTransitions() {
         let timer = TimerService.shared
@@ -80,8 +92,9 @@ struct MacDynamicIslandTests {
         let settings = SettingsStore.shared
         settings.resetToDefaults()
         
-        #expect(settings.notchWidth == 210.0)
-        #expect(settings.notchHeight == 34.0)
+        #expect(settings.notchWidthOffset == 0.0)
+        #expect(settings.notchHeightOffset == 0.0)
+        #expect(settings.preferBuiltInNotchDisplay == true)
         #expect(settings.hoverToExpand == true)
         #expect(settings.accentColorHex == "#0A84FF")
     }
