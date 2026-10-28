@@ -23,6 +23,12 @@ public final class SettingsStore: ObservableObject {
     @AppStorage("clipboardMaxItems") public var clipboardMaxItems: Int = 50
     @AppStorage("keepAwakeActive") public var keepAwakeActive: Bool = false
     
+    // HUD Controls
+    @AppStorage("volumeHUDEnabled") public var volumeHUDEnabled: Bool = true
+    @AppStorage("brightnessHUDEnabled") public var brightnessHUDEnabled: Bool = true
+    @AppStorage("capsLockHUDEnabled") public var capsLockHUDEnabled: Bool = true
+    @AppStorage("hudDismissTimeout") public var hudDismissTimeout: Double = 2.0
+    
     // Appearance
     @AppStorage("accentColorHex") public var accentColorHex: String = "#0A84FF" // macOS system blue
     @AppStorage("islandOpacity") public var islandOpacity: Double = 0.98
@@ -88,6 +94,10 @@ public final class SettingsStore: ObservableObject {
         reduceMotion = false
         launchAtLogin = false
         enabledWidgetsString = "Media,System,Shelf,Clipboard,Timer,Notes,Tools,Calendar"
+        volumeHUDEnabled = true
+        brightnessHUDEnabled = true
+        capsLockHUDEnabled = true
+        hudDismissTimeout = 2.0
     }
     
     private func updateLaunchAtLogin(enabled: Bool) {

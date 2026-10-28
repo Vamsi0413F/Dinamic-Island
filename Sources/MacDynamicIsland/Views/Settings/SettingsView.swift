@@ -217,6 +217,29 @@ public struct SettingsView: View {
                 }
                 .padding(8)
             }
+            
+            GroupBox(label: Label("System HUDs", systemImage: "bell.badge")) {
+                VStack(spacing: 10) {
+                    Toggle("Volume HUD", isOn: $settingsStore.volumeHUDEnabled)
+                        .toggleStyle(.switch)
+                    
+                    Toggle("Brightness HUD", isOn: $settingsStore.brightnessHUDEnabled)
+                        .toggleStyle(.switch)
+                    
+                    Toggle("Caps Lock HUD", isOn: $settingsStore.capsLockHUDEnabled)
+                        .toggleStyle(.switch)
+                    
+                    Divider()
+                    
+                    sliderRow(title: "HUD Auto-Dismiss Delay", value: $settingsStore.hudDismissTimeout, range: 0.5...5.0, unit: "s")
+                    
+                    Text("HUD overlays show volume, brightness, and caps lock indicators inline with the island.")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(8)
+            }
         }
     }
     

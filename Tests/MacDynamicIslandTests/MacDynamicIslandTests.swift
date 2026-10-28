@@ -97,5 +97,9 @@ struct MacDynamicIslandTests {
         #expect(settings.preferBuiltInNotchDisplay == true)
         #expect(settings.hoverToExpand == true)
         #expect(settings.accentColorHex == "#0A84FF")
+        #expect(settings.volumeHUDEnabled == true)
+        #expect(settings.brightnessHUDEnabled == true)
+        #expect(settings.capsLockHUDEnabled == true)
+        #expect(settings.hudDismissTimeout == 2.0)
     }
 }

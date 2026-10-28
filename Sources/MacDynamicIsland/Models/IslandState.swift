@@ -1,8 +1,15 @@
 import Foundation
 import SwiftUI
 
-public enum IslandPresentationMode: String, CaseIterable, Codable, Sendable {
+public enum HUDEvent: Equatable, Sendable {
+    case volume(level: Float, isMuted: Bool)
+    case brightness(level: Float)
+    case capsLock(isOn: Bool)
+}
+
+public enum IslandPresentationMode: Equatable, Sendable {
     case compact          // Minimal pill embracing the notch
+    case hud(HUDEvent)    // Transient HUD alert (volume, brightness, caps lock)
     case expanded         // Medium drop-down pill with active widget overview
     case detailed         // Full interactive panel with tabs & controls
 }

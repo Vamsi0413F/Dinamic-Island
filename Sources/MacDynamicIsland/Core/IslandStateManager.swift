@@ -9,10 +9,12 @@ public final class IslandStateManager: ObservableObject {
     @Published public var activeWidget: WidgetType = .media
     @Published public var isHovered: Bool = false
     @Published public var isPinnedExpanded: Bool = false
+    @Published public var activeHUD: HUDEvent? = nil
     @Published public var notesContent: String = "Quick Scratchpad Note\n- Type anything here\n- Persisted automatically"
     
     private var hoverTimer: Timer?
     private var autoCollapseTimer: Timer?
+    private var hudTimer: Timer?
     
     public init() {}
     
@@ -23,6 +25,16 @@ public final class IslandStateManager: ObservableObject {
             // Cancel any pending collapse when pointer returns
             autoCollapseTimer?.invalidate()
             autoCollapseTimer = nil
+            
+            // If currently showing a HUD, pointer hover transitions to full expanded overview
+            if case .hud = mode {
+                hudTimer?.invalidate()
+                hudTimer = nil
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    self.mode = .expanded
+                }
+                return
+            }
             
             guard SettingsStore.shared.hoverToExpand, !isPinnedExpanded else { return }
             
@@ -48,10 +60,41 @@ public final class IslandStateManager: ObservableObject {
         }
     }
     
+    // MARK: - HUD Trigger (Volume, Brightness, Caps Lock)
+    public func triggerHUD(_ event: HUDEvent) {
+        hudTimer?.invalidate()
+        self.activeHUD = event
+        
+        if mode == .compact || isHUDMode {
+            withAnimation(.spring(response: 0.24, dampingFraction: 0.8)) {
+                self.mode = .hud(event)
+            }
+        }
+        
+        let timeout = SettingsStore.shared.hudDismissTimeout
+        hudTimer = Timer.scheduledTimer(withTimeInterval: timeout, repeats: false) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+                    if self.isHUDMode && !self.isHovered {
+                        self.mode = .compact
+                    }
+                    self.activeHUD = nil
+                }
+            }
+        }
+    }
+    
+    private var isHUDMode: Bool {
+        if case .hud = mode { return true }
+        return false
+    }
+    
     public func expand(to widget: WidgetType? = nil) {
         if let widget = widget {
             self.activeWidget = widget
         }
+        hudTimer?.invalidate()
         withAnimation(.spring(response: 0.32, dampingFraction: 0.8)) {
             self.mode = .expanded
         }
@@ -65,6 +108,7 @@ public final class IslandStateManager: ObservableObject {
         self.isPinnedExpanded = true
         autoCollapseTimer?.invalidate()
         autoCollapseTimer = nil
+        hudTimer?.invalidate()
         withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
             self.mode = .detailed
         }
@@ -76,13 +120,14 @@ public final class IslandStateManager: ObservableObject {
         autoCollapseTimer = nil
         hoverTimer?.invalidate()
         hoverTimer = nil
+        hudTimer?.invalidate()
         withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
             self.mode = .compact
         }
     }
     
     public func toggleExpanded() {
-        if mode == .compact {
+        if mode == .compact || isHUDMode {
             withAnimation(.spring(response: 0.32, dampingFraction: 0.8)) {
                 mode = .expanded
             }

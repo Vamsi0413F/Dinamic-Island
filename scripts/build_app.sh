@@ -29,6 +29,10 @@ if [ -f "$PROJECT_DIR/Resources/Info.plist" ]; then
     cp "$PROJECT_DIR/Resources/Info.plist" "$CONTENTS_DIR/Info.plist"
 fi
 
+if [ -f "$PROJECT_DIR/Resources/AppIcon.icns" ]; then
+    cp "$PROJECT_DIR/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
+fi
+
 echo "==> Signing application bundle (ad-hoc)..."
 codesign --force --deep --sign - "$APP_DIR"
 

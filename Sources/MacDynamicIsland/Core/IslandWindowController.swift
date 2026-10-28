@@ -30,11 +30,19 @@ public final class IslandWindowController: ObservableObject {
             .environmentObject(CalendarService.shared)
             .environmentObject(VisualToolsService.shared)
             .environmentObject(PermissionManager.shared)
+            .environmentObject(VolumeHUDService.shared)
+            .environmentObject(BrightnessHUDService.shared)
+            .environmentObject(CapsLockHUDService.shared)
         
         panel.contentView = NSHostingView(rootView: containerView)
         panel.orderFrontRegardless()
         panel.updateTrackingArea()
         self.panel = panel
+        
+        // Initialize event-driven system services
+        _ = VolumeHUDService.shared
+        _ = BrightnessHUDService.shared
+        _ = CapsLockHUDService.shared
         
         updateFrame(animated: false)
     }
@@ -105,6 +113,10 @@ public final class IslandWindowController: ObservableObject {
         case .compact:
             width = max(100, notchInfo.notchWidth + SettingsStore.shared.notchWidthOffset)
             height = max(28, notchInfo.notchHeight + SettingsStore.shared.notchHeightOffset)
+        case .hud:
+            // Sleek notch-hugging HUD pill for Volume, Brightness, or Caps Lock
+            width = max(280, notchInfo.notchWidth + 84)
+            height = max(38, notchInfo.notchHeight + 2)
         case .expanded:
             // Compact, content-driven dropdown peek card
             width = min(400, max(360, screen.width - 40))

@@ -38,6 +38,10 @@ public struct IslandContainerView: View {
                     CompactIslandView()
                         .transition(.opacity.combined(with: .scale(scale: 0.96)))
                     
+                case .hud(let event):
+                    IslandHUDView(event: event)
+                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    
                 case .expanded:
                     ExpandedIslandView()
                         .transition(.opacity.combined(with: .scale(scale: 0.98)))
@@ -136,7 +140,8 @@ public struct IslandContainerView: View {
     // so it merges seamlessly with the top display bezel without awkward gaps!
     private var islandBackgroundShape: UnevenRoundedRectangle {
         let bottomRadius = CGFloat(settingsStore.notchCornerRadius)
-        let topRadius: CGFloat = (notchInfo.hasNotch && stateManager.mode == .compact) ? 0 : (stateManager.mode == .compact ? bottomRadius : 18)
+        let isTopFlat = notchInfo.hasNotch && (stateManager.mode == .compact || isHUDMode)
+        let topRadius: CGFloat = isTopFlat ? 0 : ((stateManager.mode == .compact || isHUDMode) ? bottomRadius : 18)
         
         return UnevenRoundedRectangle(
             topLeadingRadius: topRadius,
@@ -145,5 +150,10 @@ public struct IslandContainerView: View {
             topTrailingRadius: topRadius,
             style: .continuous
         )
+    }
+    
+    private var isHUDMode: Bool {
+        if case .hud = stateManager.mode { return true }
+        return false
     }
 }

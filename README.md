@@ -62,11 +62,18 @@ Built with **Swift 6**, **SwiftUI**, **AppKit**, and native macOS system framewo
 - **Screen Capture**: Quick region screen capture to clipboard.
 - **Teleprompter**: Adjustable speed scrolling prompter positioned right under your camera.
 
-### 8. Customization & Settings
+### 8. System HUD Overlays
+- **Inline Volume HUD**: Direct CoreAudio hardware property listener (`kAudioDevicePropertyVolumeScalar`, `kAudioDevicePropertyMute`). Shows a speaker icon with real-time volume slider dynamically aligned alongside the notch wings, auto-dismissing after customizable duration.
+- **Inline Brightness HUD**: Hardware-aware display brightness indicator utilizing `DisplayServices` for the built-in Retina display with threshold-based jitter filtering.
+- **Caps Lock Indicator**: Global and local `NSEvent.flagsChanged` monitor detecting Caps Lock activation and displaying an inline status badge without keystroke logging.
+- **Customizable HUD Controls**: Adjust auto-dismiss delays and toggle individual HUD overlays via Settings.
+
+### 9. Customization & Settings
 - **Display & Notch Calibration**: Live readout of the connected screen resolution, scale factor, and hardware-detected notch dimensions. Fine-tune width, height, corner radius, and top offset with relative sliders.
 - **Interaction Controls**: Toggle hover-to-expand, configure delay, auto-collapse timeout, and reduce-motion mode.
 - **Launch at Login**: Optional `SMAppService` startup registration.
 - **Reset to Defaults**: One-click restore to hardware-calibrated baseline values.
+- **Dedicated App Icon**: Custom high-resolution macOS squircle icon bundle (`AppIcon.icns`) built for macOS design guidelines.
 
 ---
 
