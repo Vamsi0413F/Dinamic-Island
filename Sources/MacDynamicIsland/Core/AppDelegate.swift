@@ -20,9 +20,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Toggle Dynamic Island", action: #selector(toggleIsland), keyEquivalent: "d"))
-        menu.addItem(NSMenuItem(title: "Pin Island Open", action: #selector(togglePin), keyEquivalent: "p"))
+        menu.addItem(NSMenuItem(title: "Pin / Unpin Island", action: #selector(togglePin), keyEquivalent: "p"))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Calibrate Notch & Settings...", action: #selector(openSettings), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: "Settings...", action: #selector(openSettings), keyEquivalent: ","))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit MacDynamicIsland", action: #selector(quitApp), keyEquivalent: "q"))
         
@@ -38,22 +38,22 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc private func togglePin() {
         Task { @MainActor in
-            IslandStateManager.shared.isPinnedExpanded.toggle()
-            if IslandStateManager.shared.isPinnedExpanded {
-                IslandStateManager.shared.openDetailed()
-            } else {
-                IslandStateManager.shared.collapse()
-            }
+            IslandStateManager.shared.togglePin()
         }
     }
     
     @objc private func openSettings() {
         Task { @MainActor in
-            IslandStateManager.shared.openDetailed()
+            SettingsWindowController.shared.showSettings()
         }
     }
     
     @objc private func quitApp() {
         NSApplication.shared.terminate(nil)
+    }
+    
+    public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        // Do NOT terminate when settings window closes; the island and status bar presence stay alive
+        return false
     }
 }

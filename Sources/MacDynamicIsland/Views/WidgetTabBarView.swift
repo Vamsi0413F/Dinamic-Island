@@ -7,34 +7,34 @@ public struct WidgetTabBarView: View {
     public init() {}
     
     public var body: some View {
-        HStack(spacing: 6) {
-            // Widget tabs
-            ForEach(WidgetType.allCases) { widget in
+        HStack(spacing: 5) {
+            // Filter by user-enabled widgets from settings
+            let visibleWidgets = settingsStore.enabledWidgets
+            ForEach(visibleWidgets) { widget in
                 Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
                         stateManager.activeWidget = widget
-                        stateManager.openDetailed(widget: widget)
                     }
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: widget.iconName)
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 10, weight: .semibold))
                         if stateManager.activeWidget == widget {
                             Text(widget.rawValue)
                                 .font(.system(size: 11, weight: .bold))
                         }
                     }
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 7)
                     .padding(.vertical, 4)
                     .background(
                         stateManager.activeWidget == widget
-                        ? settingsStore.accentColor.opacity(0.3)
+                        ? settingsStore.accentColor.opacity(0.35)
                         : Color.white.opacity(0.06)
                     )
                     .foregroundColor(
                         stateManager.activeWidget == widget
                         ? .white
-                        : .white.opacity(0.65)
+                        : .white.opacity(0.6)
                     )
                     .clipShape(Capsule())
                     .overlay(
@@ -52,33 +52,42 @@ public struct WidgetTabBarView: View {
             
             Spacer()
             
-            // Pin toggle
+            // Pin toggle button
             Button {
-                stateManager.isPinnedExpanded.toggle()
-                if !stateManager.isPinnedExpanded {
-                    stateManager.scheduleAutoCollapse()
-                } else {
-                    stateManager.cancelAutoCollapse()
-                }
+                stateManager.togglePin()
             } label: {
                 Image(systemName: stateManager.isPinnedExpanded ? "pin.fill" : "pin")
-                    .font(.system(size: 11))
+                    .font(.system(size: 10))
                     .foregroundColor(stateManager.isPinnedExpanded ? settingsStore.accentColor : .white.opacity(0.6))
+                    .padding(5)
+                    .background(stateManager.isPinnedExpanded ? settingsStore.accentColor.opacity(0.2) : Color.white.opacity(0.06))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .help(stateManager.isPinnedExpanded ? "Unpin (Auto-collapses when pointer exits)" : "Pin Island Open")
+            
+            // Settings button
+            Button {
+                SettingsWindowController.shared.showSettings()
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.6))
                     .padding(5)
                     .background(Color.white.opacity(0.06))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .help(stateManager.isPinnedExpanded ? "Unpin Island (auto-collapses)" : "Pin Island Open")
+            .help("Open Settings")
             
             // Collapse button
             Button {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                     stateManager.collapse()
                 }
             } label: {
                 Image(systemName: "chevron.up")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.system(size: 10, weight: .bold))
                     .foregroundColor(.white.opacity(0.7))
                     .padding(5)
                     .background(Color.white.opacity(0.06))

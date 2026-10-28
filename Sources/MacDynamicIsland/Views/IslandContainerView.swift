@@ -8,32 +8,35 @@ public struct IslandContainerView: View {
     @EnvironmentObject var mediaService: MediaService
     
     @State private var isShelfDragTargeted: Bool = false
-    @State private var showingSettings: Bool = false
     
     public init() {}
     
+    private var notchInfo: ScreenNotchInfo {
+        ScreenNotchDetector.shared.detectNotch()
+    }
+    
     public var body: some View {
         ZStack(alignment: .top) {
-            // Background Pill
-            RoundedRectangle(cornerRadius: islandCornerRadius, style: .continuous)
+            // Background capsule
+            islandBackgroundShape
                 .fill(Color.black.opacity(settingsStore.islandOpacity))
                 .overlay(
-                    RoundedRectangle(cornerRadius: islandCornerRadius, style: .continuous)
+                    islandBackgroundShape
                         .strokeBorder(
                             isShelfDragTargeted
                             ? settingsStore.accentColor
-                            : Color.white.opacity(0.14),
+                            : Color.white.opacity(0.12),
                             lineWidth: isShelfDragTargeted ? 2.0 : 0.8
                         )
                 )
-                .shadow(color: Color.black.opacity(0.45), radius: 16, x: 0, y: 8)
+                .shadow(color: Color.black.opacity(0.5), radius: 14, x: 0, y: 6)
             
-            // Content
+            // Content according to active presentation mode
             VStack(spacing: 0) {
                 switch stateManager.mode {
                 case .compact:
                     CompactIslandView()
-                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
                     
                 case .expanded:
                     ExpandedIslandView()
@@ -45,7 +48,7 @@ public struct IslandContainerView: View {
                 }
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: islandCornerRadius, style: .continuous))
+        .clipShape(islandBackgroundShape)
         .onHover { isHovering in
             stateManager.handleHover(isHovering: isHovering)
         }
@@ -63,7 +66,7 @@ public struct IslandContainerView: View {
             return true
         }
         .animation(
-            settingsStore.reduceMotion ? .none : .spring(response: 0.35, dampingFraction: 0.82),
+            settingsStore.reduceMotion ? .none : .spring(response: 0.32, dampingFraction: 0.82),
             value: stateManager.mode
         )
     }
@@ -75,8 +78,8 @@ public struct IslandContainerView: View {
             
             Divider()
                 .background(Color.white.opacity(0.1))
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
             
             // Active Tab View
             Group {
@@ -101,46 +104,46 @@ public struct IslandContainerView: View {
             }
             .frame(maxHeight: .infinity)
             
-            // Bottom Status / Settings Bar
+            // Bottom Status Bar
             HStack {
                 Button {
-                    showingSettings.toggle()
+                    SettingsWindowController.shared.showSettings()
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 11))
-                        Text("Calibrate / Settings")
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 10))
+                        Text("Settings")
                             .font(.system(size: 10, weight: .semibold))
                     }
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(.white.opacity(0.6))
                 }
                 .buttonStyle(.plain)
                 
                 Spacer()
                 
-                Text("MacDynamicIsland")
+                Text(DeviceHardwareInfo.shared.chipName)
                     .font(.system(size: 9, weight: .bold, design: .rounded))
-                    .foregroundColor(.white.opacity(0.3))
+                    .foregroundColor(.white.opacity(0.35))
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 8)
-            .padding(.top, 4)
-        }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-                .frame(width: 440, height: 340)
-                .background(Color.black.opacity(0.95))
+            .padding(.bottom, 6)
+            .padding(.top, 2)
         }
     }
     
-    private var islandCornerRadius: CGFloat {
-        switch stateManager.mode {
-        case .compact:
-            return CGFloat(settingsStore.notchCornerRadius)
-        case .expanded:
-            return 24
-        case .detailed:
-            return 28
-        }
+    // Smooth custom shape:
+    // If the screen has a physical camera notch, the top edge stays flat (0 radius)
+    // so it merges seamlessly with the top display bezel without awkward gaps!
+    private var islandBackgroundShape: UnevenRoundedRectangle {
+        let bottomRadius = CGFloat(settingsStore.notchCornerRadius)
+        let topRadius: CGFloat = (notchInfo.hasNotch && stateManager.mode == .compact) ? 0 : (stateManager.mode == .compact ? bottomRadius : 18)
+        
+        return UnevenRoundedRectangle(
+            topLeadingRadius: topRadius,
+            bottomLeadingRadius: bottomRadius,
+            bottomTrailingRadius: bottomRadius,
+            topTrailingRadius: topRadius,
+            style: .continuous
+        )
     }
 }

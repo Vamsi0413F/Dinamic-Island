@@ -35,13 +35,8 @@ public struct CompactIslandView: View {
         .padding(.horizontal, 14)
         .frame(height: max(28, notchInfo.notchHeight + settingsStore.notchHeightOffset))
         .contentShape(Rectangle())
-        .onHover { isHovering in
-            stateManager.handleHover(isHovering: isHovering)
-        }
         .onTapGesture {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                stateManager.toggleExpanded()
-            }
+            stateManager.toggleExpanded()
         }
     }
     

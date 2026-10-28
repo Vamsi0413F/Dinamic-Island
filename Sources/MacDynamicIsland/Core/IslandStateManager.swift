@@ -9,7 +9,7 @@ public final class IslandStateManager: ObservableObject {
     @Published public var activeWidget: WidgetType = .media
     @Published public var isHovered: Bool = false
     @Published public var isPinnedExpanded: Bool = false
-    @Published public var notesContent: String = "Welcome to MacDynamicIsland!\n- Drag files directly onto the notch\n- Track CPU, RAM, & Battery\n- Pomodoro & Stopwatch built-in"
+    @Published public var notesContent: String = "Quick Scratchpad Note\n- Type anything here\n- Persisted automatically"
     
     private var hoverTimer: Timer?
     private var autoCollapseTimer: Timer?
@@ -18,22 +18,32 @@ public final class IslandStateManager: ObservableObject {
     
     public func handleHover(isHovering: Bool) {
         self.isHovered = isHovering
-        hoverTimer?.invalidate()
-        
-        guard SettingsStore.shared.hoverToExpand, !isPinnedExpanded else { return }
         
         if isHovering {
+            // Cancel any pending collapse when pointer returns
+            autoCollapseTimer?.invalidate()
+            autoCollapseTimer = nil
+            
+            guard SettingsStore.shared.hoverToExpand, !isPinnedExpanded else { return }
+            
+            hoverTimer?.invalidate()
             let delay = SettingsStore.shared.hoverExpandDelay
             hoverTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
                 Task { @MainActor [weak self] in
                     guard let self = self, self.isHovered else { return }
                     if self.mode == .compact {
-                        self.mode = .expanded
+                        withAnimation(.spring(response: 0.32, dampingFraction: 0.8)) {
+                            self.mode = .expanded
+                        }
                     }
                 }
             }
         } else {
-            // Hover ended
+            // Pointer left the island region
+            hoverTimer?.invalidate()
+            hoverTimer = nil
+            
+            guard !isPinnedExpanded else { return }
             scheduleAutoCollapse()
         }
     }
@@ -42,7 +52,9 @@ public final class IslandStateManager: ObservableObject {
         if let widget = widget {
             self.activeWidget = widget
         }
-        self.mode = .expanded
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.8)) {
+            self.mode = .expanded
+        }
         scheduleAutoCollapse()
     }
     
@@ -50,24 +62,43 @@ public final class IslandStateManager: ObservableObject {
         if let widget = widget {
             self.activeWidget = widget
         }
-        self.mode = .detailed
         self.isPinnedExpanded = true
         autoCollapseTimer?.invalidate()
+        autoCollapseTimer = nil
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+            self.mode = .detailed
+        }
     }
     
     public func collapse() {
         self.isPinnedExpanded = false
-        self.mode = .compact
         autoCollapseTimer?.invalidate()
+        autoCollapseTimer = nil
         hoverTimer?.invalidate()
+        hoverTimer = nil
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+            self.mode = .compact
+        }
     }
     
     public func toggleExpanded() {
         if mode == .compact {
-            mode = .expanded
-            isPinnedExpanded = true
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.8)) {
+                mode = .expanded
+            }
+            scheduleAutoCollapse()
         } else {
             collapse()
+        }
+    }
+    
+    public func togglePin() {
+        isPinnedExpanded.toggle()
+        if isPinnedExpanded {
+            autoCollapseTimer?.invalidate()
+            autoCollapseTimer = nil
+        } else {
+            scheduleAutoCollapse()
         }
     }
     
@@ -78,12 +109,15 @@ public final class IslandStateManager: ObservableObject {
         autoCollapseTimer = Timer.scheduledTimer(withTimeInterval: timeout, repeats: false) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self = self, !self.isHovered, !self.isPinnedExpanded else { return }
-                self.mode = .compact
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+                    self.mode = .compact
+                }
             }
         }
     }
     
     public func cancelAutoCollapse() {
         autoCollapseTimer?.invalidate()
+        autoCollapseTimer = nil
     }
 }

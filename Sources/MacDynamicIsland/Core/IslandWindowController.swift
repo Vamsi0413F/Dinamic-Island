@@ -33,6 +33,7 @@ public final class IslandWindowController: ObservableObject {
         
         panel.contentView = NSHostingView(rootView: containerView)
         panel.orderFrontRegardless()
+        panel.updateTrackingArea()
         self.panel = panel
         
         updateFrame(animated: false)
@@ -79,12 +80,17 @@ public final class IslandWindowController: ObservableObject {
         
         if animated && !SettingsStore.shared.reduceMotion {
             NSAnimationContext.runAnimationGroup { context in
-                context.duration = 0.28
+                context.duration = 0.26
                 context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
                 panel.animator().setFrame(targetFrame, display: true)
+            } completionHandler: {
+                Task { @MainActor in
+                    panel.updateTrackingArea()
+                }
             }
         } else {
             panel.setFrame(targetFrame, display: true)
+            panel.updateTrackingArea()
         }
     }
     
@@ -100,16 +106,18 @@ public final class IslandWindowController: ObservableObject {
             width = max(100, notchInfo.notchWidth + SettingsStore.shared.notchWidthOffset)
             height = max(28, notchInfo.notchHeight + SettingsStore.shared.notchHeightOffset)
         case .expanded:
-            width = min(460, max(360, screen.width - 40))
-            height = 180
+            // Compact, content-driven dropdown peek card
+            width = min(400, max(360, screen.width - 40))
+            height = 86
         case .detailed:
-            width = min(600, max(480, screen.width - 40))
-            height = min(460, max(380, screen.height - 80))
+            // Polished interactive panel without excess empty space
+            width = min(530, max(460, screen.width - 40))
+            height = min(320, max(280, screen.height - 80))
         }
         
         let x = screen.midX - (width / 2.0)
         
-        // If display has a physical notch, hug the top edge. Otherwise float with a 10pt margin.
+        // If display has a physical notch, hug the very top edge. Otherwise float with a 10pt margin.
         let y: CGFloat
         if notchInfo.hasNotch {
             y = screen.maxY - height + yOffset

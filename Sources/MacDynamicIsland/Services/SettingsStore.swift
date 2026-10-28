@@ -9,14 +9,14 @@ public final class SettingsStore: ObservableObject {
     // Notch Geometry Calibration (Offsets relative to hardware detection)
     @AppStorage("notchWidthOffset") public var notchWidthOffset: Double = 0.0
     @AppStorage("notchHeightOffset") public var notchHeightOffset: Double = 0.0
-    @AppStorage("notchCornerRadius") public var notchCornerRadius: Double = 18.0
+    @AppStorage("notchCornerRadius") public var notchCornerRadius: Double = 16.0
     @AppStorage("notchYOffset") public var notchYOffset: Double = 0.0
     @AppStorage("preferBuiltInNotchDisplay") public var preferBuiltInNotchDisplay: Bool = true
     
     // Behavior
     @AppStorage("hoverToExpand") public var hoverToExpand: Bool = true
-    @AppStorage("hoverExpandDelay") public var hoverExpandDelay: Double = 0.25
-    @AppStorage("autoCollapseSeconds") public var autoCollapseSeconds: Double = 4.0
+    @AppStorage("hoverExpandDelay") public var hoverExpandDelay: Double = 0.18
+    @AppStorage("autoCollapseSeconds") public var autoCollapseSeconds: Double = 0.45
     @AppStorage("enableHaptics") public var enableHaptics: Bool = true
     @AppStorage("showMusicVisualizer") public var showMusicVisualizer: Bool = true
     @AppStorage("clipboardMonitoringEnabled") public var clipboardMonitoringEnabled: Bool = true
@@ -35,17 +35,49 @@ public final class SettingsStore: ObservableObject {
         }
     }
     
+    // Enabled Widgets (comma separated string for AppStorage compatibility)
+    @AppStorage("enabledWidgetsString") public var enabledWidgetsString: String = "Media,System,Shelf,Clipboard,Timer,Notes,Tools,Calendar"
+    
+    public var enabledWidgets: [WidgetType] {
+        get {
+            let names = enabledWidgetsString.components(separatedBy: ",")
+            let list = names.compactMap { WidgetType(rawValue: $0.trimmingCharacters(in: .whitespaces)) }
+            return list.isEmpty ? WidgetType.allCases : list
+        }
+        set {
+            enabledWidgetsString = newValue.map { $0.rawValue }.joined(separator: ",")
+            objectWillChange.send()
+        }
+    }
+    
+    public func isWidgetEnabled(_ widget: WidgetType) -> Bool {
+        return enabledWidgets.contains(widget)
+    }
+    
+    public func toggleWidget(_ widget: WidgetType) {
+        var current = enabledWidgets
+        if current.contains(widget) {
+            // Keep at least one widget enabled
+            if current.count > 1 {
+                current.removeAll { $0 == widget }
+            }
+        } else {
+            current.append(widget)
+        }
+        self.enabledWidgets = current
+    }
+    
     public init() {}
     
     public func resetToDefaults() {
         notchWidthOffset = 0.0
         notchHeightOffset = 0.0
-        notchCornerRadius = 18.0
+        notchCornerRadius = 16.0
         notchYOffset = 0.0
         preferBuiltInNotchDisplay = true
         hoverToExpand = true
-        hoverExpandDelay = 0.25
-        autoCollapseSeconds = 4.0
+        hoverExpandDelay = 0.18
+        autoCollapseSeconds = 0.45
         enableHaptics = true
         showMusicVisualizer = true
         clipboardMonitoringEnabled = true
@@ -55,6 +87,7 @@ public final class SettingsStore: ObservableObject {
         islandOpacity = 0.98
         reduceMotion = false
         launchAtLogin = false
+        enabledWidgetsString = "Media,System,Shelf,Clipboard,Timer,Notes,Tools,Calendar"
     }
     
     private func updateLaunchAtLogin(enabled: Bool) {

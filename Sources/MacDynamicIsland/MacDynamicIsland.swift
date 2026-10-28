@@ -7,7 +7,11 @@ struct MacDynamicIslandApp: App {
     
     var body: some Scene {
         Settings {
-            EmptyView()
+            SettingsView()
+                .environmentObject(SettingsStore.shared)
+                .environmentObject(PermissionManager.shared)
+                .environmentObject(IslandStateManager.shared)
+                .environmentObject(SystemMetricsService.shared)
         }
     }
 }
